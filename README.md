@@ -16,10 +16,10 @@ To use the govulncheck GitHub Action add the following step to your workflow:
 
 ```yaml
 - id: govulncheck
-  uses: golang/govulncheck-action@v0.1.0
+  uses: golang/govulncheck-action@v1
 ```
 
-By default the govulncheck Github Action will run with the
+By default the govulncheck GitHub Action will run with the
 [latest version of Go](https://go.dev/doc/install) and analyze all packages in
 the provided Go module. Assuming you have the latest Go version installed
 locally, this is equivalent to running the following on your command line:
@@ -28,13 +28,13 @@ locally, this is equivalent to running the following on your command line:
 $ govulncheck ./...
 ```
 
-To specify a specific Go version or
+To specify a specific Go version, directory in which to run govulncheck, or
 [package pattern](https://pkg.go.dev/cmd/go#hdr-Package_lists_and_patterns),
 use the following syntax:
 
 ```yaml
 - id: govulncheck
-  uses: golang/govulncheck-action@v0.1.0
+  uses: golang/govulncheck-action@v1
   with:
      go-version-input: <your-Go-version>
      go-package: <your-package-pattern>
@@ -52,12 +52,36 @@ jobs:
     name: Run govulncheck
     steps:
       - id: govulncheck
-        uses: golang/govulncheck-action@v0.1.0
+        uses: golang/govulncheck-action@v1
         with:
-           go-version-input: 1.20.4
+           go-version-input: 1.20.6
            go-package: ./...
 ```
-When a vulnerability is found, an error will be displayed for that
+
+govulncheck GitHub Action accepts several other optional inputs:
+
+```yaml
+work-dir: directory in which to run govulncheck, default '.'
+repo-checkout: checkout the repository, default true
+check-latest: check for the latest Go version, default false
+cache: specify if caching is needed, default true
+cache-dependency-path: specify path to go.sum file (for monorepos), default ''
+go-version-file: go.mod or go.work file specifying Go version, default ''
+output-format: the format of govulncheck output ('text', 'json', or 'sarif'), default 'text'
+output-file: the file to which the output is redirected, default '' (no
+redirection)
+```
+The precedence for inputs `go-version-input`, `go-version-file`, `check-latest`,
+`cache`, and `cache-dependency-path` specifying Go version and caches is inherited
+from [actions/setup-go](https://github.com/actions/setup-go).
+
+The govulncheck-action follows the exit codes of govulncheck command.
+Specifying the output format 'json' or 'sarif' will return success even if
+there are some vulnerabilities detected. See
+[here](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck#hdr-Exit_codes)
+for more information.
+
+When a vulnerability is found with 'text' output format, an error will be displayed for that
 [GitHub job](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow)
 with information about the vulnerability and how to fix it. For example:
 
